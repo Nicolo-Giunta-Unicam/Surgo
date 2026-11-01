@@ -5,7 +5,7 @@ import { defeatOutcome, movesRetainedAfterRemoval } from './policies';
 export type Phase = 'store' | 'combat' | 'over';
 export type Err = string | null;
 export interface Enemy { name: string; tier: string; hp: number; maxHp: number; block: number; gear: string[]; art?: string; id?: string; atk: number }
-export interface Combat { enemy: Enemy; phase: 'player' | 'resolve' | 'enemy'; mercy?: boolean; tier?: number; lastBy?: Rec2<string | null>; mods?: { off: number; bypass: boolean; freeNext: boolean; dupNext: boolean; combos: number }; cardCost?: Record<string, number>; lastUid?: string; pick?: string[] | null; syn?: { n: number; text: string }; runs?: Rec2<number>; chains?: Rec2<number>; seq: number; fresh: number; ev: Ev | null; queue: EnemyCard[]; last: EnemyCard | null; field: Side; foeField: Side; combo: string; played: Record<string, number>; prev: string | null; block: number; draw: string[]; hand: string[]; discard: string[]; energy: number; turn: number; log: string[] }
+export interface Combat { foeDealt?: number; enemy: Enemy; phase: 'player' | 'resolve' | 'enemy'; mercy?: boolean; tier?: number; lastBy?: Rec2<string | null>; mods?: { off: number; bypass: boolean; freeNext: boolean; dupNext: boolean; combos: number }; cardCost?: Record<string, number>; lastUid?: string; pick?: string[] | null; syn?: { n: number; text: string }; runs?: Rec2<number>; chains?: Rec2<number>; seq: number; fresh: number; ev: Ev | null; queue: EnemyCard[]; last: EnemyCard | null; field: Side; foeField: Side; combo: string; played: Record<string, number>; prev: string | null; block: number; draw: string[]; hand: string[]; discard: string[]; energy: number; turn: number; log: string[] }
 /** Effetti di una scelta di capitolo che valgono solo per il prossimo duello. */
 export interface Boon { block?: number; energy?: number; draw?: number; foeHp?: number; hp?: number }
 export interface Run {
@@ -39,7 +39,7 @@ export function ownedCards(r: Run): Card[] {
   r.retained.forEach(add); r.bought.forEach(b => add(`buy:${b}`)); (r.sold ?? []).forEach(u => m.delete(u));
   return [...m.values()];
 }
-export const maxHp = (r: Run) => CONFIG.startHp + r.equipped.reduce((s, e) => s + (EQUIPMENT[e].bonus.maxHp ?? 0), 0);
+export const maxHp = (r: Run) => CONFIG.startHp + Math.round(CONFIG.hpPerArena * (r.arena - 1)) + r.equipped.reduce((s, e) => s + (EQUIPMENT[e].bonus.maxHp ?? 0), 0);
 export const dmgBonus = (r: Run) => r.equipped.reduce((s, e) => s + (EQUIPMENT[e].bonus.dmg ?? 0), 0);
 export const maxEnergy = (r: Run) => Math.min(CONFIG.maxEnergy, CONFIG.energyPerTurn + (r.energyBonus ?? 0));
 export const energyPrice = (r: Run) => CONFIG.energyPrice(r.energyBonus ?? 0);
@@ -212,7 +212,7 @@ function absorb(c: Combat, sh: Placed[], d: number) {
   for (const s of sh) { if (d <= 0) break; const a = Math.min(s.block, d); s.block -= a; d -= a; }
   sh.splice(0, sh.length, ...sh.filter(s => { if (s.block > 0) return true; if (s.uid) c.discard.push(s.uid); return false; })); return d;
 }
-function startTurn(r: Run) { const c = r.combat!; c.turn++; c.field.def = decay(c, c.field.def); c.block = 0; c.combo = ''; c.played = {}; c.prev = null; c.mods = { off: 0, bypass: false, freeNext: false, dupNext: false, combos: 0 }; c.cardCost = {}; delete c.lastUid; c.pick = null; c.lastBy = { off: null, def: null }; c.runs = { off: 0, def: 0 }; c.chains = { off: 0, def: 0 }; c.ev = null; c.energy = maxEnergy(r); c.phase = 'player'; drawCards(c, r, c.turn === 1 ? CONFIG.startHand : CONFIG.drawPerTurn); }
+function startTurn(r: Run) { const c = r.combat!; c.turn++; c.field.def = decay(c, c.field.def); c.block = 0; c.combo = ''; c.played = {}; c.prev = null; c.mods = { off: 0, bypass: false, freeNext: false, dupNext: false, combos: 0 }; c.cardCost = {}; delete c.lastUid; c.pick = null; c.lastBy = { off: null, def: null }; c.runs = { off: 0, def: 0 }; c.chains = { off: 0, def: 0 }; c.ev = null; c.energy = maxEnergy(r); c.phase = 'player'; c.foeDealt = 0; drawCards(c, r, c.turn === 1 ? CONFIG.startHand : Math.max(CONFIG.drawPerTurn, CONFIG.handTarget - c.hand.length)); }
 /** Scudi attivi del giocatore: guardia delle carte offensive del turno + difese schierate. */
 export const shieldsOf = (c: Combat) => c.block + c.field.def.reduce((s, p) => s + p.block, 0);
 /** Le carte "Scudo d'assalto" già schierate seguono gli scudi attivi (se ne giochi altri dopo, il loro danno cresce). */
@@ -269,7 +269,7 @@ export function playCard(r: Run, uid: string): Err {
 export function drawDiscard(r: Run): Err {
   const c = r.combat; if (r.phase !== 'combat' || !c) return 'Nessun combattimento.'; if (c.phase !== 'player') return 'Non è il tuo turno.'; if (c.pick?.length) return 'Scegli prima una carta (Stratega).';
   if (c.draw.length) return 'Hai ancora carte da pescare nel mazzo.'; if (!c.discard.length) return 'Nessuna carta negli scarti.'; if (c.hand.length >= CONFIG.maxHand) return `Mano piena (${CONFIG.maxHand}).`; if (c.energy < CONFIG.discardDrawCost) return 'Energia insufficiente.';
-  c.energy -= CONFIG.discardDrawCost; c.draw = shuffle(r, c.discard); c.discard = []; drawCards(c, r, 1); c.log.push('Mazzo rimescolato: peschi 1 carta.'); return null;
+  c.energy -= CONFIG.discardDrawCost; c.draw = shuffle(r, c.discard); c.discard = []; drawCards(c, r, CONFIG.discardDrawCards); c.log.push('Mazzo rimescolato: peschi 1 carta.'); return null;
 }
 /** Stratega: sceglie una delle 3 carte mostrate; entra in mano e, se giocata nel turno, costa 1. */
 export function choosePick(r: Run, uid: string): Err {
@@ -286,8 +286,9 @@ function prepareEnemy(r: Run, c: Combat) {
   c.foeField.def = decay(c, c.foeField.def);
   const pool = (REGIONS[r.region ?? '']?.enemyMoves ?? []).map(id => ENEMY_MOVES.find(m => m.id === id)).filter(Boolean) as typeof ENEMY_MOVES; if (!pool.length) pool.push(...ENEMY_MOVES);
   const E = CONFIG.enemy, n = Math.min(E.playsMax, E.playsBase + Math.floor((r.arena - 1) / E.playsEvery)), base = c.enemy.atk * E.cardMult;
-  const k = (x?: number) => x ? Math.max(1, Math.round(base * x)) : 0, gb = (c.enemy.gear ?? []).reduce((s, g) => s + (EQUIPMENT[g].bonus.dmg ?? 0), 0);
-  c.queue = Array.from({ length: n }, () => { const m = pool[Math.floor(rand(r) * pool.length)]; return { id: m.id, name: m.name, icon: m.icon, dmg: m.dmg ? k(m.dmg) + gb : 0, hits: m.hits ?? 1, block: k(m.block), heal: k(m.heal), dur: m.dur ?? 1 }; });
+  const avg = pool.reduce((s, m) => s + (m.dmg ?? 0) * (m.hits ?? 1), 0) / pool.length, norm = E.normalize && avg > 0 ? E.normalize / avg : 1; // normalizza: ogni isola infligge in media gli stessi danni per carta, a prescindere dal suo mazzo di mosse
+  const k = (x?: number) => x ? Math.max(1, Math.round(base * x)) : 0, kd = (x?: number) => x ? Math.max(1, Math.round(base * norm * x)) : 0, gb = (c.enemy.gear ?? []).reduce((s, g) => s + (EQUIPMENT[g].bonus.dmg ?? 0), 0);
+  c.queue = Array.from({ length: n }, () => { const m = pool[Math.floor(rand(r) * pool.length)]; return { id: m.id, name: m.name, icon: m.icon, dmg: m.dmg ? kd(m.dmg) + gb : 0, hits: m.hits ?? 1, block: k(m.block), heal: k(m.heal), dur: m.dur ?? 1 }; });
   c.phase = 'enemy'; c.ev = null; c.last = null; c.log.push('Turno avversario!');
 }
 /** Un passo del turno nemico: prima schiera UNA carta per volta, poi risolve un attacco per volta; infine inizia il tuo turno. */
@@ -308,7 +309,7 @@ export function enemyStep(r: Run): Err {
   }
   const a = c.foeField.off.shift();
   if (a) {
-    let abs = 0, dmg = 0; for (let i = 0; i < a.hits; i++) { const t = Math.min(c.block, a.dmg); c.block -= t; const left = absorb(c, c.field.def, a.dmg - t); abs += a.dmg - left; dmg += left; r.hp = Math.max(0, r.hp - left); }
+    let abs = 0, dmg = 0; for (let i = 0; i < a.hits; i++) { const t = Math.min(c.block, a.dmg); c.block -= t; let left = absorb(c, c.field.def, a.dmg - t); if (CONFIG.enemy.burstCap) left = Math.max(0, Math.min(left, Math.round(CONFIG.enemy.burstCap * maxHp(r)) - (c.foeDealt ?? 0))); c.foeDealt = (c.foeDealt ?? 0) + left; abs += a.dmg - left; dmg += left; r.hp = Math.max(0, r.hp - left); }
     c.last = null; c.ev = { by: 'foe', card: a, absorbed: abs, dmg }; c.log.push(`${a.name}: ${dmg} danni${abs ? ` (${abs} assorbiti)` : ''}.`); if (r.hp <= 0) { r.finalEv = c.ev; resolveOutcome(r, 'lose'); } return null;
   }
   startTurn(r); return null;
@@ -328,8 +329,7 @@ export function resolveOutcome(r: Run, res: 'win' | 'lose' | 'flee' | 'spared') 
   if (res === 'win') {
     const g = CONFIG.reward(r.arena); r.gold += g; r.msg = `Vittoria! +${g} oro.`; r.outcome = 'win';
     if (r.region) { r.progress = { ...r.progress, [r.region]: wins(r, r.region) + 1 }; const nx = REGION_LIST[islandIndex(r.region) + 1]; if (wins(r, r.region) === CONFIG.matchesPerIsland && nx) r.msg += ` Isola completata: si sblocca ${nx.name}!`; }
-    r.arena++; r.slots = slotsFor(r.arena);
-    r.wounded = r.hp / maxHp(r) < CONFIG.woundedBelow; scar(r); r.phase = 'store'; genOffers(r); r.needsMap = !r.region || wins(r, r.region) >= CONFIG.matchesPerIsland;
+    r.wounded = r.hp / maxHp(r) < CONFIG.woundedBelow; r.arena++; r.slots = slotsFor(r.arena); scar(r); r.phase = 'store'; genOffers(r); r.needsMap = !r.region || wins(r, r.region) >= CONFIG.matchesPerIsland;
   } else if (res === 'flee' || res === 'spared') { // fuga (nessuna conseguenza) o pietà accettata (soldi dimezzati): si torna alla storia e il duello si ripete
     r.outcome = res; if (res === 'spared') r.gold = Math.floor(r.gold / 2); r.wounded = r.hp / maxHp(r) < CONFIG.woundedBelow; r.phase = 'store'; r.needsMap = false;
     r.msg = res === 'flee' ? 'Sei fuggito dal duello: nessuna conseguenza.' : 'Vieni risparmiato… ma ti portano via metà dei soldi.'; if (res === 'spared') scar(r);

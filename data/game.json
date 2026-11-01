@@ -14,8 +14,9 @@
     "energyPerTurn": 3,
     "maxEnergy": 10,
     "cost": {
-      "div": 5,
-      "max": 8
+      "div": 6,
+      "max": 6,
+      "tier": 0.15
     },
     "offers": 3,
     "mystery": 0.6,
@@ -29,15 +30,17 @@
       "max": 3
     },
     "enemy": {
-      "hpBase": 22,
-      "hpGrowth": 1.13,
-      "atkBase": 5,
-      "atkGrowth": 1.095,
+      "hpBase": 34,
+      "hpGrowth": 1.085,
+      "atkBase": 7.5,
+      "atkGrowth": 1.035,
       "cardMult": 0.6,
       "gearEvery": 3,
       "playsBase": 2,
-      "playsEvery": 8,
-      "playsMax": 5
+      "playsEvery": 10,
+      "playsMax": 5,
+      "burstCap": 0.5,
+      "normalize": 1.1
     },
     "reward": {
       "base": 15,
@@ -57,13 +60,16 @@
     "woundedBelow": 0.3,
     "woundedStart": 0.8,
     "healCost": 15,
-    "discardDrawCost": 3,
+    "discardDrawCost": 2,
     "choice": {
       "goldDivisor": 3,
       "blockPerArena": 0.08,
       "hpPerArena": 0.05
     },
-    "maxScars": 6
+    "maxScars": 6,
+    "hpPerArena": 3,
+    "handTarget": 5,
+    "discardDrawCards": 1
   },
   "baseMoves": [
     {
@@ -84,7 +90,7 @@
       "id": "focus",
       "name": "Respiro",
       "effect": {
-        "block": 2,
+        "block": 3,
         "draw": 1
       }
     },
@@ -92,7 +98,7 @@
       "id": "kick",
       "name": "Calcio frontale",
       "effect": {
-        "dmg": 5
+        "dmg": 4
       }
     },
     {
@@ -103,7 +109,7 @@
         "hits": 2,
         "link": {
           "from": "kick",
-          "dmg": 2
+          "dmg": 1
         }
       }
     },
@@ -111,7 +117,7 @@
       "id": "dodge",
       "name": "Schivata",
       "effect": {
-        "block": 3,
+        "block": 2,
         "draw": 1
       }
     },
@@ -130,7 +136,7 @@
         "dmg": 6,
         "link": {
           "from": "grab",
-          "dmg": 4
+          "dmg": 3
         }
       }
     },
@@ -138,7 +144,7 @@
       "id": "lock",
       "name": "Leva articolare",
       "effect": {
-        "block": 6,
+        "block": 5,
         "dur": 2
       }
     }
@@ -202,6 +208,18 @@
             }
           },
           "cost": 1
+        },
+        {
+          "id": "wraps_a2",
+          "name": "Rabbia del ferito",
+          "price": 30,
+          "effect": {
+            "dmg": 11,
+            "hits": 2,
+            "req": {
+              "hpBelow": 0.5
+            }
+          }
         }
       ],
       "island": "boxing",
@@ -277,6 +295,16 @@
             }
           },
           "cost": 2
+        },
+        {
+          "id": "stance_a3",
+          "name": "Guardia attiva",
+          "price": 24,
+          "effect": {
+            "block": 6,
+            "dur": 1,
+            "draw": 1
+          }
         }
       ],
       "kind": "style"
@@ -354,6 +382,15 @@
             }
           },
           "cost": 1
+        },
+        {
+          "id": "footwork_a3",
+          "name": "Cambio di ritmo",
+          "price": 28,
+          "effect": {
+            "draw": 2,
+            "energy": 1
+          }
         }
       ],
       "kind": "style"
@@ -403,6 +440,16 @@
             "dur": 0
           },
           "price": 30
+        },
+        {
+          "id": "plating_a1",
+          "name": "Barriera reattiva",
+          "price": 36,
+          "effect": {
+            "block": 10,
+            "dur": 2,
+            "draw": 1
+          }
         }
       ],
       "island": "battlefield",
@@ -575,6 +622,15 @@
             "hits": 2
           },
           "price": 70
+        },
+        {
+          "id": "titan_a1",
+          "name": "Frantumazione",
+          "price": 60,
+          "effect": {
+            "dmg": 10,
+            "hits": 3
+          }
         }
       ],
       "kind": "body"
@@ -627,6 +683,16 @@
             "dur": 0
           },
           "price": 66
+        },
+        {
+          "id": "hide_a1",
+          "name": "Pelle di roccia",
+          "price": 58,
+          "effect": {
+            "block": 10,
+            "dur": 2,
+            "heal": 6
+          }
         }
       ],
       "kind": "body"
@@ -815,6 +881,15 @@
             "heal": 12
           },
           "price": 120
+        },
+        {
+          "id": "regen_a1",
+          "name": "Rigenerazione rapida",
+          "price": 90,
+          "effect": {
+            "heal": 12,
+            "draw": 1
+          }
         }
       ],
       "kind": "body"
@@ -943,6 +1018,18 @@
             }
           },
           "price": 110
+        },
+        {
+          "id": "rift_a1",
+          "name": "Strappo dimensionale",
+          "price": 95,
+          "effect": {
+            "dmg": 14,
+            "link": {
+              "from": "rift_1",
+              "dmg": 10
+            }
+          }
         }
       ],
       "island": "volcano",
@@ -998,6 +1085,16 @@
             "energy": 2
           },
           "price": 220
+        },
+        {
+          "id": "aura_a1",
+          "name": "Esplosione di ki",
+          "price": 200,
+          "effect": {
+            "dmg": 16,
+            "hits": 2,
+            "draw": 1
+          }
         }
       ],
       "kind": "body"
@@ -1078,27 +1175,35 @@
         {
           "name": "Sparring partner",
           "story": "La palestra di Gorin odora di sudore e linimento. «Prima di sognare, {nome}, impara a restare in piedi», borbotta il vecchio, e ti mette davanti lo sparring partner che ha fatto sputare sangue a tutti i suoi allievi.",
-          "id": "boxing-1"
+          "id": "boxing-1",
+          "hpMul": 0.82,
+          "atkMul": 0.83
         },
         {
           "name": "Pugile di strada",
           "story": "Dopo il primo round il tuo nome gira nei vicoli. Un pugile di strada, senza guanti né regole, ti aspetta dietro il locale: qui non esiste un gong che ti salvi.",
-          "id": "boxing-2"
+          "id": "boxing-2",
+          "hpMul": 0.89,
+          "atkMul": 0.88
         },
         {
           "name": "Campione regionale",
           "story": "Le cinture regionali si scoprono avare. Il campione in carica ti guarda dall'alto: per lui sei solo un ragazzino con troppa fame, e vuole farti pentire di essere salito sul ring.",
-          "id": "boxing-3"
+          "id": "boxing-3",
+          "hpMul": 0.98,
+          "atkMul": 0.91
         },
         {
           "name": "Peso massimo",
           "story": "Ogni vittoria alza la posta. Il peso massimo entra scortato dal brusio del pubblico, mentre Gorin ti stringe le fasce in silenzio: «Non accettare il suo ritmo. Imponi il tuo».",
-          "id": "boxing-4"
+          "id": "boxing-4",
+          "hpMul": 1.1,
+          "atkMul": 0.96
         },
         {
           "name": "Leggenda del ring",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.43,
+          "atkMul": 1.2,
           "lore": "Un campione imbattuto da vent'anni: la sua guardia non ha mai ceduto.",
           "story": "Il palazzetto è pieno fino al soffitto. La Leggenda non perde da vent'anni, e Gorin lo sa: «Se la superi, {nome}, qualcuno ti noterà». Dalle gradinate, un uomo in nero annota il tuo nome su un taccuino.",
           "id": "boxing-5"
@@ -1126,27 +1231,35 @@
         {
           "name": "Recluta cibernetica",
           "story": "L'uomo in nero ti porta oltre il mare, dove i pugni da soli non bastano. Un campo militare ti accoglie con il rumore dei motori, e la prima prova è una recluta con le braccia ancora fumanti d'officina.",
-          "id": "battlefield-1"
+          "id": "battlefield-1",
+          "hpMul": 1.35,
+          "atkMul": 1.1
         },
         {
           "name": "Cecchino",
           "story": "Colpi secchi dalla cresta: il cecchino non si vede mai, ma tu sì. Capisci in fretta che qui sopravvive chi si muove prima del suono.",
-          "id": "battlefield-2"
+          "id": "battlefield-2",
+          "hpMul": 1.54,
+          "atkMul": 1.17
         },
         {
           "name": "Soldato in esoscheletro",
           "story": "Gli armaioli ridono dei tuoi pugni nudi, poi smettono. Il soldato in esoscheletro avanza come una porta blindata, e ti costringe a scegliere: nuovi mezzi, o nuove idee.",
-          "id": "battlefield-3"
+          "id": "battlefield-3",
+          "hpMul": 1.45,
+          "atkMul": 1.19
         },
         {
           "name": "Mech da guerra",
           "story": "Il terreno trema. Un mech da guerra emerge dalla nebbia, guidato da qualcuno che ha smesso di sentire il dolore. Dal comando, in silenzio, valutano se sei degno dei loro segreti.",
-          "id": "battlefield-4"
+          "id": "battlefield-4",
+          "hpMul": 1.5,
+          "atkMul": 1.21
         },
         {
           "name": "Generale corazzato",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.82,
+          "atkMul": 1.35,
           "lore": "Comanda l'esercito dall'interno di un'armatura meccanica: non conosce la resa.",
           "story": "Il generale ti aspetta nel cratere dell'ultimo bunker, chiuso in un'armatura che sembra respirare. «Hai imparato a usare gli strumenti, {nome}. Ora scopriamo se ne sei il padrone o lo schiavo».",
           "id": "battlefield-5"
@@ -1175,27 +1288,35 @@
         {
           "name": "Predone",
           "story": "Il deserto non perdona: acqua per due giorni e nemmeno una mappa. Un predone ti segue da ore, certo che la sete farà il lavoro per lui. Si sbaglia.",
-          "id": "desert-1"
+          "id": "desert-1",
+          "hpMul": 1.06,
+          "atkMul": 1.03
         },
         {
           "name": "Scorpione gigante",
           "story": "Di notte la sabbia si muove. Lo scorpione gigante esce dalle dune e il tuo corpo risponde prima della mente, con una forza che non ricordavi di avere.",
-          "id": "desert-2"
+          "id": "desert-2",
+          "hpMul": 0.99,
+          "atkMul": 1.0
         },
         {
           "name": "Mummia guerriera",
           "story": "Tra le rovine di un tempio sepolto, una guerriera avvolta in bende secolari ti sfida a un duello rituale. Ogni colpo che incassi ti rende più duro, e lei lo sa.",
-          "id": "desert-3"
+          "id": "desert-3",
+          "hpMul": 1.23,
+          "atkMul": 1.1
         },
         {
           "name": "Colosso di sabbia",
           "story": "La tempesta prende la forma di un gigante. Resistere non serve: il colosso crolla e si ricompone, e solo un colpo capace di spezzare la roccia può fermarlo.",
-          "id": "desert-4"
+          "id": "desert-4",
+          "hpMul": 1.35,
+          "atkMul": 1.15
         },
         {
           "name": "Faraone solare",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.66,
+          "atkMul": 1.29,
           "lore": "Il sole stesso sembra inchinarsi a lui; la sabbia obbedisce a ogni suo gesto.",
           "story": "All'orizzonte una piramide brilla come un secondo sole. Il Faraone ti attende sul trono: «Hai attraversato il mio regno senza inchinarti. Mostrami di cosa è fatto il tuo corpo».",
           "id": "desert-5"
@@ -1223,27 +1344,35 @@
         {
           "name": "Squalo corazzato",
           "story": "Il porto è un mosaico di relitti. Corri sulle assi galleggianti mentre uno squalo corazzato taglia la corrente: ormai sai che l'acqua non ti rallenta, ti ascolta.",
-          "id": "ocean-1"
+          "id": "ocean-1",
+          "hpMul": 1.09,
+          "atkMul": 1.04
         },
         {
           "name": "Sirena sonica",
           "story": "Il suo canto spezza i vetri e ti fa vibrare le ossa. La sirena sonica ti sfida a inseguire un suono più veloce di te, e per la prima volta il tuo corpo ci riesce.",
-          "id": "ocean-2"
+          "id": "ocean-2",
+          "hpMul": 1.46,
+          "atkMul": 1.2
         },
         {
           "name": "Pirata dell'energia",
           "story": "Sul ponte di una nave volante, un pirata accumula tempesta nei pugni e ride: «Quelli come noi non combattono, scatenano». Capire il campo di battaglia è l'unico modo per stargli dietro.",
-          "id": "ocean-3"
+          "id": "ocean-3",
+          "hpMul": 1.49,
+          "atkMul": 1.21
         },
         {
           "name": "Kraken",
           "story": "Le onde diventano braccia. Il kraken afferra la nave e, per respirare, devi trovare un varco tra i tentacoli: pensare in tre dimensioni, muoverti senza nessun appoggio.",
-          "id": "ocean-4"
+          "id": "ocean-4",
+          "hpMul": 1.42,
+          "atkMul": 1.18
         },
         {
           "name": "Leviatano",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.53,
+          "atkMul": 1.24,
           "lore": "Una creatura antica che solleva maremoti con un solo battito di coda.",
           "story": "Sotto la superficie qualcosa respira come una montagna. Il Leviatano si solleva e il mare si piega attorno a lui: se lo fermi, la rotta verso la foresta sarà aperta.",
           "id": "ocean-5"
@@ -1271,27 +1400,35 @@
         {
           "name": "Lupo mutante",
           "story": "Oltre la riva la foresta ti osserva. Il lupo mutante esce dagli alberi con occhi troppo intelligenti: non cerca cibo, vuole capire se sei una preda o un simile.",
-          "id": "forest-1"
+          "id": "forest-1",
+          "hpMul": 0.94,
+          "atkMul": 0.97
         },
         {
           "name": "Spirito della foresta",
           "story": "Tra i tronchi sussurra una voce che ti conosce. Lo spirito ti mostra ciò che potresti diventare, e le tue ferite iniziano a chiudersi da sole.",
-          "id": "forest-2"
+          "id": "forest-2",
+          "hpMul": 0.99,
+          "atkMul": 1.0
         },
         {
           "name": "Treant antico",
           "story": "Un albero si alza e cammina. Il treant antico non ha rabbia, solo una pazienza millenaria: ogni tuo colpo lo risveglia un po' di più, ogni tua ferita ti cambia.",
-          "id": "forest-3"
+          "id": "forest-3",
+          "hpMul": 0.94,
+          "atkMul": 0.97
         },
         {
           "name": "Cacciatore del frutto",
           "story": "Qualcuno ti segue da giorni: vuole il potere che porti dentro, nato da un frutto assaggiato per curiosità. Affrontare il cacciatore significa decidere che cosa sei diventato.",
-          "id": "forest-4"
+          "id": "forest-4",
+          "hpMul": 0.98,
+          "atkMul": 0.99
         },
         {
           "name": "Albero del mondo",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.16,
+          "atkMul": 1.09,
           "lore": "Radici che attraversano l'isola: ogni foglia è un occhio, ogni ramo un colpo.",
           "story": "Al cuore della foresta, radici grandi come fiumi stringono l'isola. L'Albero del mondo non parla: ti osserva con mille foglie-occhio, e capisci che solo un'evoluzione completa può attraversarlo.",
           "id": "forest-5"
@@ -1320,27 +1457,35 @@
         {
           "name": "Salamandra celeste",
           "story": "Il vulcano non è una montagna ma una bocca. Una salamandra celeste danza nella lava e l'aria si fa così calda che il tuo respiro prende fuoco: la tua aura comincia a rispondere.",
-          "id": "volcano-1"
+          "id": "volcano-1",
+          "hpMul": 0.86,
+          "atkMul": 0.93
         },
         {
           "name": "Golem di lava",
           "story": "La roccia si stacca dal pendio e cammina. Il golem di lava è stanco del mondo, e ogni suo passo lascia una crepa. Lo affronti sapendo che ormai i tuoi colpi spaccano il suolo.",
-          "id": "volcano-2"
+          "id": "volcano-2",
+          "hpMul": 0.84,
+          "atkMul": 0.92
         },
         {
           "name": "Demone ardente",
           "story": "Un demone ardente ti riconosce: «Sei quello che sale». Non vuole fermarti, vuole sapere fino a dove puoi spingerti prima di bruciare.",
-          "id": "volcano-3"
+          "id": "volcano-3",
+          "hpMul": 1.07,
+          "atkMul": 1.03
         },
         {
           "name": "Drago cataclismico",
           "story": "Il cielo si oscura. Il drago cataclismico apre le ali e la cenere cade come pioggia: davanti a un essere così, o diventi qualcosa di più, o ti arrendi.",
-          "id": "volcano-4"
+          "id": "volcano-4",
+          "hpMul": 0.95,
+          "atkMul": 0.98
         },
         {
           "name": "Titano del magma",
-          "hpMul": 1.3,
-          "atkMul": 1.15,
+          "hpMul": 1.03,
+          "atkMul": 1.03,
           "lore": "Un gigante nato dal cuore del vulcano: ogni suo passo fa tremare il mondo.",
           "story": "In cima al cratere il Titano ti aspetta, nato dal cuore del mondo. Alle tue spalle, il mare e tutti i volti incontrati. «Il tuo viaggio finisce qui, {nome}, o inizia davvero», dice.",
           "id": "volcano-5"
@@ -1369,10 +1514,10 @@
         "jab",
         "jab",
         "jab",
+        "jab",
         "guard",
         "guard",
         "guard",
-        "focus",
         "focus"
       ]
     },
@@ -4231,7 +4376,16 @@
       "choice.volcano-cuore-mondo.b.label": "Brace for the blow",
       "choice.volcano-cuore-mondo.b.text": "You concentrate on defense.",
       "choice.volcano-cuore-mondo.c.label": "Take a fragment",
-      "choice.volcano-cuore-mondo.c.text": "Painfully precious."
+      "choice.volcano-cuore-mondo.c.text": "Painfully precious.",
+      "move.wraps_a2.name": "Wounded fury",
+      "move.stance_a3.name": "Active guard",
+      "move.footwork_a3.name": "Change of pace",
+      "move.plating_a1.name": "Reactive barrier",
+      "move.titan_a1.name": "Shattering",
+      "move.hide_a1.name": "Rock skin",
+      "move.regen_a1.name": "Rapid regeneration",
+      "move.rift_a1.name": "Dimensional tear",
+      "move.aura_a1.name": "Ki explosion"
     }
   }
 }

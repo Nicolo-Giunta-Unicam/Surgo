@@ -11,7 +11,8 @@
     "test": "npm run assets && tsx --test tests/*.test.ts",
     "typecheck": "npm run assets && tsc --noEmit",
     "assets:list": "node scripts/list-assets.mjs",
-    "i18n:extract": "node scripts/i18n-extract.mjs"
+    "i18n:extract": "node scripts/i18n-extract.mjs",
+    "sim": "tsx scripts/sim.ts"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",

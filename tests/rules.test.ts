@@ -47,8 +47,8 @@ test('mano: 5 iniziali, +1 a turno, la mano persiste; il nemico gioca una carta 
 });
 test('energia: il costo viene scalato e senza energia la carta non si gioca', () => {
   const r = newRun(3); beginArena(r); const c = r.combat!; c.enemy.hp = c.enemy.maxHp = 1000; c.hand = ['eq:wraps:1', 'eq:wraps:2', 'base:jab:0'];
-  const e0 = c.energy; assert.equal(playCard(r, 'eq:wraps:1'), null); assert.equal(c.energy, e0 - 1); assert.equal(playCard(r, 'eq:wraps:2'), null);
-  assert.equal(c.energy, 0); assert.ok(playCard(r, 'base:jab:0')); assert.equal(c.hand.length, 1);
+  const e0 = c.energy, k1 = effCost(c, 'eq:wraps:1'); assert.equal(playCard(r, 'eq:wraps:1'), null); assert.equal(c.energy, e0 - k1); assert.equal(playCard(r, 'eq:wraps:2'), null);
+  c.energy = 0; assert.ok(playCard(r, 'base:jab:0')); assert.equal(c.hand.length, 1); // senza energia non si gioca
 });
 test('estensioni energia: prezzo crescente, limite 10, energia a inizio turno', () => {
   const r = rich(); assert.equal(maxEnergy(r), CONFIG.energyPerTurn); const p0 = energyPrice(r), g = r.gold;
@@ -143,8 +143,8 @@ test('pietà: se risparmiato soldi dimezzati e si torna allo store; altrimenti i
 test('vita: duello a PV pieni (anche con PV massimi aumentati); sotto il 30% parti all\'80% finché non paghi la cura', () => {
   const r = rich(); buyEquipment(r, 'plating'); beginArena(r); assert.equal(maxHp(r), 48); assert.equal(r.hp, 48);
   r.hp = 10; r.combat!.enemy.hp = 1; r.combat!.hand.push('base:jab:0'); playCard(r, 'base:jab:0'); endTurn(r); settle(r); assert.equal(r.wounded, true);
-  const r2: Run = JSON.parse(JSON.stringify(r)); beginArena(r2); assert.equal(r2.hp, Math.ceil(48 * 0.8));
-  const g = r.gold; assert.equal(healRun(r), null); assert.equal(r.gold, g - 15); assert.ok(healRun(r)); beginArena(r); assert.equal(r.hp, 48);
+  const r2: Run = JSON.parse(JSON.stringify(r)); beginArena(r2); assert.equal(r2.hp, Math.ceil(maxHp(r2) * 0.8));
+  const g = r.gold; assert.equal(healRun(r), null); assert.equal(r.gold, g - 15); assert.ok(healRun(r)); beginArena(r); assert.equal(r.hp, maxHp(r));
 });
 test('combo: valida solo tra carte consecutive; Comboo = catena di almeno 3 mosse (uguali o concatenate)', () => {
   const r = rich(); beginArena(r); const c = r.combat!; c.enemy.hp = c.enemy.maxHp = 1000; c.energy = 10; c.hand = ['eq:servo:0', 'base:jab:0', 'eq:servo:0'];
@@ -183,11 +183,11 @@ test('sinergie: Clonazione copia l\'ultima carta; Stratega mostra 3 carte e la s
   ({ r, c } = fresh(['buy:reactor_a1'])); c.draw = ['base:guard:5', 'base:jab:1', 'eq:servo:0']; playCard(r, 'buy:reactor_a1'); assert.equal(c.pick!.length, 3); assert.ok(playCard(r, 'buy:reactor_a1')); assert.ok(endTurn(r));
   assert.equal(choosePick(r, 'eq:servo:0'), null); assert.ok(c.hand.includes('eq:servo:0')); assert.equal(effCost(c, 'eq:servo:0'), 1); assert.equal(c.draw.includes('eq:servo:0'), false);
 });
-test('mazzo finito: nessun rimescolo automatico; mano massima 10; per 3 energia gli scarti tornano nel mazzo e si pesca 1 carta', () => {
+test('mazzo finito: nessun rimescolo automatico; mano massima 10; spendendo energia gli scarti tornano nel mazzo e si pesca', () => {
   const { r, c } = fresh(Array(9).fill('base:jab:0')); c.draw = ['base:guard:5', 'base:guard:6', 'base:guard:7']; endTurn(r); settle(r); c.queue = []; enemyStep(r);
   assert.equal(c.hand.length, 10); assert.equal(c.draw.length, 2); // a 9 carte se ne pesca una sola
-  c.draw = []; c.discard = ['base:jab:3', 'base:jab:4']; c.hand = ['base:guard:5']; c.energy = 2; assert.ok(drawDiscard(r)); c.energy = 5;
-  assert.equal(drawDiscard(r), null); assert.equal(c.energy, 2); assert.equal(c.hand.length, 2); assert.equal(c.discard.length, 0); assert.equal(c.draw.length, 1); assert.ok(['base:jab:3', 'base:jab:4'].includes(c.hand[1]) && ['base:jab:3', 'base:jab:4'].includes(c.draw[0]) && c.hand[1] !== c.draw[0]);
+  c.draw = []; c.discard = ['base:jab:3', 'base:jab:4']; c.hand = ['base:guard:5']; c.energy = CONFIG.discardDrawCost - 1; assert.ok(drawDiscard(r)); c.energy = CONFIG.discardDrawCost + 2; const n0 = c.hand.length;
+  assert.equal(drawDiscard(r), null); assert.equal(c.energy, 2); assert.equal(c.hand.length, n0 + CONFIG.discardDrawCards); assert.equal(c.discard.length, 0); assert.equal(c.draw.length, 2 - CONFIG.discardDrawCards); assert.ok(['base:jab:3', 'base:jab:4'].includes(c.hand[1]) && ['base:jab:3', 'base:jab:4'].includes(c.draw[0]) && c.hand[1] !== c.draw[0]);
   c.draw = ['base:jab:1']; assert.ok(drawDiscard(r)); c.draw = []; c.hand = Array(10).fill('base:jab:0'); c.energy = 9; assert.ok(drawDiscard(r));
 });
 
@@ -232,4 +232,11 @@ test('cicatrici: un duello chiuso sotto il 30% di salute ne lascia una permanent
   beginArena(r); r.hp = maxHp(r); resolveOutcome(r, 'win'); assert.equal(r.scars, 1);
   beginArena(r); r.hp = 1; resolveOutcome(r, 'flee'); assert.equal(r.scars, 1);
   for (let i = 0; i < 10; i++) { beginArena(r); r.hp = 1; resolveOutcome(r, 'spared'); } assert.equal(r.scars, CONFIG.maxScars);
+});
+
+test('regole di bilanciamento: PV per arena, mano rifornita a inizio turno, tetto ai danni subiti in un turno', () => {
+  const r = rich(); const base = maxHp(r); r.arena = 11; assert.equal(maxHp(r), base + Math.round(CONFIG.hpPerArena * 10)); r.arena = 1;
+  beginArena(r); const c = r.combat!; c.enemy.hp = c.enemy.maxHp = 100000; c.hand = ['base:jab:0']; c.enemy.atk = 1e6; endTurn(r); for (let g = 0; g < 300 && r.phase === 'combat' && c.phase !== 'player'; g++) enemyStep(r);
+  assert.equal(r.phase, 'combat'); assert.ok(r.hp >= Math.floor(maxHp(r) * (1 - CONFIG.enemy.burstCap)) - 1, `PV ${r.hp}: il tetto ai danni per turno non regge`);
+  assert.equal(c.hand.length, Math.max(1 + CONFIG.drawPerTurn, CONFIG.handTarget)); // 1 carta in mano: si rifornisce fino a handTarget
 });
